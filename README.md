@@ -1,6 +1,7 @@
 # CabaModel: High-Performance Gemini-Native Agent Architecture
+
 <p align="center">
-  <img src="https://img.shields.io/github/license/gabaoun/CabaModel?style=for-the-badge&color=green" />
+  <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Architecture-Hexagonal-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
@@ -23,33 +24,40 @@ CabaModel is a high-performance framework designed to move LLM agents from exper
 ## 🏗 Architecture Flow
 
 ```mermaid
-sequenceDiagram
-    participant App as Application Layer
-    participant Domain as Domain (AgentConfig)
-    participant Factory as Infrastructure (AgentFactory)
-    participant ADK as Google ADK Engine
-    participant Gemini as Google Gemini API
+graph TD
+    %% Definição de Estilos
+    classDef domain fill:#7289da,stroke:#333,stroke-width:2px,color:#fff;
+    classDef infra fill:#2c2f33,stroke:#7289da,stroke-width:2px,color:#fff;
+    classDef app fill:#43b581,stroke:#333,stroke-width:1px,color:#fff;
+    classDef external fill:#f1c40f,stroke:#333,stroke-width:1px,color:#000;
 
-    App->>Domain: Define Agent Schema (Pydantic)
-    Domain-->>App: Validated Config Object
-    
-    App->>Factory: Request Agent Instance
-    Factory->>Factory: Inject Tenacity Retry Logic
-    Factory->>ADK: Instantiate Resilient Agent
-    
-    App->>ADK: chat("Temporal Query")
-    
-    par Resilient Execution
-        ADK->>Gemini: Model Inference (with Backoff)
-        Gemini-->>ADK: Tool Call Request
+    subgraph Domain_Layer [🛡️ Domain Layer - Core]
+        D1[AgentConfig <br/><i>Pydantic Model</i>]:::domain
+        D2[Contract Validation <br/><i>Type Safety</i>]:::domain
     end
 
-    ADK->>App: Execute Tool (Async Wrapped)
-    App-->>ADK: Tool Result
+    subgraph Infra_Layer [⚙️ Infrastructure - Adapters]
+        I1[AgentFactory]:::infra
+        I2[Google ADK Engine]:::infra
+        I3[Tenacity Wrapper <br/><i>Exp. Backoff</i>]:::infra
+    end
+
+    subgraph App_Layer [📱 Application Layer]
+        A1[C4B4 Assistant]:::app
+        A2[Temporal Tool Agent]:::app
+    end
+
+    %% Fluxo de Dependência
+    D1 -->|Defines Contract| I1
+    I1 -->|Instantiates Logic| I2
+    I3 -.->|Protects| I2
     
-    ADK->>Gemini: Final Inference
-    Gemini-->>ADK: Final Response
-    ADK-->>App: ResilientAgentResponse
+    %% Fluxo de Execução
+    A1 & A2 ==>|Request Interaction| I2
+    I2 <==>|Async Stream| Gemini([☁️ Google Gemini API]):::external
+
+    %% Legenda Manual (Opcional, mas ajuda)
+    %% Click D1 "https://github.com/gabaoun/CabaModel/tree/main/src/cabamodel/domain"
 ```
 
 ## 📈 Benchmarks
