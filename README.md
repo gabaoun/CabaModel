@@ -1,4 +1,4 @@
-# CabaModel: High-Performance Gemini-Native Agent Architecture
+# CabaModel: Gemini-Native Agent Architecture
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" />
@@ -7,100 +7,45 @@
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
-**Author:** Gabriel (Gabaoun) Penha
+Study on AI agent architecture using **Google ADK**, **Pydantic v2**, and asynchronous execution.
 
-> *A modular, production-grade agent orchestration engine leveraging Google ADK and Gemini-native capabilities to deliver resilient, strictly-typed autonomous assistance.*
+This project was developed as part of my transition from game development to backend/AI engineering. The focus was to explore:
 
-CabaModel is a high-performance framework designed to move LLM agents from experimental sandboxes to enterprise-ready systems. By implementing a **Hexagonal Architecture** and strict **Pydantic v2** validation, it provides a robust foundation for building specialized, task-oriented agents that are isolated, scalable, and resilient to external API failures.
+- **Modular organization:** Separation between domain, application, and infrastructure (hexagonal architecture) to facilitate testing and evolution.
 
-## 🌟 Core Features
+- **Data validation:** Use of Pydantic v2 to define strict input and output contracts, reducing runtime errors.
 
-* **Hexagonal Domain Isolation:** Decouples agent behavioral definitions from the underlying LLM orchestration engine, enabling framework-agnostic testing and seamless infrastructure evolution.
-* **Strict Schema Validation:** Implements a contract-first approach for agent configurations using **Pydantic v2**, eliminating "instruction drift" and runtime malformation through rigorous type-checking.
-* **Resilient Backoff Orchestration:** Utilizes **Tenacity** to handle transient network failures and Gemini API rate limits with configurable exponential backoff, ensuring high agent availability.
-* **Non-Blocking Async Execution:** Leverages Python's `asyncio` to wrap synchronous system tools into concurrent execution threads, maximizing throughput during multi-agent workflows.
-* **Modular Sandbox Encapsulation:** Each agent operates in an isolated environment with specialized toolsets and scoped instructions, strictly adhering to the Principle of Least Privilege (PoLP).
+- **Basic resilience:** Implementation of retry with exponential backoff (Tenacity) to handle temporary Gemini API failures.
 
-## 🏗 Architecture Flow
+- **Asynchronous execution:** Use of `asyncio` for non-blocking operations.
 
-```mermaid
-graph TD
-    %% Definição de Estilos
-    classDef domain fill:#7289da,stroke:#333,stroke-width:2px,color:#fff;
-    classDef infra fill:#2c2f33,stroke:#7289da,stroke-width:2px,color:#fff;
-    classDef app fill:#43b581,stroke:#333,stroke-width:1px,color:#fff;
-    classDef external fill:#f1c40f,stroke:#333,stroke-width:1px,color:#000;
+## Project Structure
 
-    subgraph Domain_Layer [🛡️ Domain Layer - Core]
-        D1[AgentConfig <br/><i>Pydantic Model</i>]:::domain
-        D2[Contract Validation <br/><i>Type Safety</i>]:::domain
-    end
+- `src/cabamodel/domain/` – Models and contracts (Pydantic)
+- `src/cabamodel/infrastructure/` – Adapters for the Gemini API and tools
+- `src/cabamodel/application/` – Specific agents (e.g., temporal_agent)
 
-    subgraph Infra_Layer [⚙️ Infrastructure - Adapters]
-        I1[AgentFactory]:::infra
-        I2[Google ADK Engine]:::infra
-        I3[Tenacity Wrapper <br/><i>Exp. Backoff</i>]:::infra
-    end
+## How to Run
 
-    subgraph App_Layer [📱 Application Layer]
-        A1[C4B4 Assistant]:::app
-        A2[Temporal Tool Agent]:::app
-    end
+1. Clone the repository
+2. Configure your Gemini API key in the `.env` file (see `.env.example`)
+3. Synchronize dependencies with `uv sync`
 
-    %% Fluxo de Dependência
-    D1 -->|Defines Contract| I1
-    I1 -->|Instantiates Logic| I2
-    I3 -.->|Protects| I2
-    
-    %% Fluxo de Execução
-    A1 & A2 ==>|Request Interaction| I2
-    I2 <==>|Async Stream| Gemini([☁️ Google Gemini API]):::external
+4. Run the example:
 
-    %% Legenda Manual (Opcional, mas ajuda)
-    %% Click D1 "https://github.com/gabaoun/CabaModel/tree/main/src/cabamodel/domain"
-```
-
-## 📈 Benchmarks
-
-| Metric | Standard SDK Wrapper | CabaModel (ADK + Hexagonal) | Improvement |
-|--------|---------------------|-----------------------------|-------------|
-| **Boot Latency** | 185ms | **12ms** | +93% (Minimalist Boot) |
-| **Validation Overhead** | N/A | **<1ms** | Negligible (Rust-powered Pydantic) |
-| **API Resilience** | Brittle | **High** | Exponential Backoff support |
-| **Memory Footprint** | 198MB | **42MB** | ~80% Resource Efficiency |
-
-## 🛠 Architecture Decision Records (ADR)
-Detailed reasoning behind our engineering choices:
-- [ADR 001: Minimalist Agent Architecture (Google-ADK)](docs/adr/001-Minimalist-Agent-Architecture-Google-ADK.md)
-- [ADR 002: Modular Tool-Calling Patterns](docs/adr/002-Modular-Tool-Calling-Patterns.md)
-- [ADR 003: Hexagonal Architecture & Strict Validation](docs/adr/003-Hexagonal-Architecture-Pydantic-Validation.md)
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.14+
-- [uv](https://github.com/astral-sh/uv) (Modern Python Package Manager)
-- Google Gemini API Key configured in `.env`
-
-### Installation
-1. Clone the repository and sync dependencies:
-   ```bash
-   uv sync
-   ```
-2. Configure your credentials in `.env` (refer to `.env.example`).
-
-### Quick Usage
 ```python
+
 import asyncio
 from src.cabamodel.application.temporal_agent import root_agent
 
 async def main():
-    # The agent is pre-configured with resilient infrastructure
-    response = root_agent.chat("What is the current system time?")
-    print(f"Agent Response: {response}")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+response = root_agent.chat("What is the current time?")
+
+print(response)
+
+asyncio.run(main())
+
 ```
 
 ## ⚖️ License
