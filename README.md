@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Architecture-Hexagonal-orange?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
