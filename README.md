@@ -6,46 +6,65 @@
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
-Study on AI agent architecture using **Google ADK**, **Pydantic v2**, and asynchronous execution.
+An advanced study on AI agent architecture using **Google ADK (Agent Development Kit)**, **FastAPI**, **Pydantic v2**, and asynchronous event-driven execution.
 
-This project was developed as part of my transition from game development to backend/AI engineering. The focus was to explore:
+This project demonstrates a production-ready transition from simple scripts to a resilient, microservice-oriented agent orchestration.
 
-- **Modular organization:** Separation between domain, application, and infrastructure (hexagonal architecture) to facilitate testing and evolution.
+## 🚀 Key Features
 
-- **Data validation:** Use of Pydantic v2 to define strict input and output contracts, reducing runtime errors.
+- **Google ADK Runner Architecture:** Implements the latest `Runner` pattern for managing agentic loops, event streams, and tool calls.
+- **RESTful Interface:** Powered by FastAPI with an interactive Swagger UI for real-time testing and orchestration.
+- **Hexagonal Design:** Clear separation between **Domain**, **Application**, and **Infrastructure** layers, ensuring scalability and testability.
+- **Asynchronous & Non-blocking:** Full `asyncio` implementation to handle I/O and event streams without blocking the main event loop.
+- **Strict Validation:** Pydantic v2 ensures data integrity across all agent-tool interactions.
+- **Resilience:** Built-in retry logic with exponential backoff for robust API communication.
 
-- **Basic resilience:** Implementation of retry with exponential backoff (Tenacity) to handle temporary Gemini API failures.
+## 📂 Project Structure
 
-- **Asynchronous execution:** Use of `asyncio` for non-blocking operations.
+- `src/cabamodel/domain/` – Core models and Pydantic schemas.
+- `src/cabamodel/infrastructure/` – API implementation, ADK Adapters, and Tools.
+- `src/cabamodel/application/` – Specialized agent definitions (e.g., temporal_agent, c4b4_bot).
+- `main.py` – Entry point for the FastAPI server and agent initialization.
 
-## Project Structure
+## ⚙️ How to Run
 
-- `src/cabamodel/domain/` – Models and contracts (Pydantic)
-- `src/cabamodel/infrastructure/` – Adapters for the Gemini API and tools
-- `src/cabamodel/application/` – Specific agents (e.g., temporal_agent)
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/CabaModel.git
+   ```
 
-## How to Run
+2. **Setup Environment:**
+   Create a `.env` file based on `.env.example` and add your `GOOGLE_API_KEY`.
 
-1. Clone the repository
-2. Configure your Gemini API key in the `.env` file (see `.env.example`)
-3. Synchronize dependencies with `uv sync`
+3. **Install Dependencies:**
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate
+   pip install -e .
+   ```
 
-4. Run the example:
+4. **Run the API:**
+   ```bash
+   python main.py
+   ```
+
+5. **Interact:**
+   Open your browser at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to access the interactive Swagger documentation.
+
+## 🛠️ Programmatic Usage Example
 
 ```python
-
-import asyncio
 from src.cabamodel.application.temporal_agent import root_agent
+from src.cabamodel.infrastructure.agent_service import run_agent_async
 
 async def main():
+    # Execute the agent using the ADK Runner-based service
+    response = await run_agent_async(root_agent, "What time is it now?")
+    print(f"Agent Response: {response}")
 
-response = root_agent.chat("What is the current time?")
-
-print(response)
-
-asyncio.run(main())
-
+# This pattern handles tool-calling loops and event streams automatically
 ```
 
 ## ⚖️ License
+
 Distributed under the Apache 2.0 License. See `LICENSE` for more information.
