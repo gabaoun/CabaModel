@@ -3,8 +3,8 @@ from src.cabamodel.infrastructure.agent_service import AgentFactory
 
 # Configuration definition using Pydantic
 c4b4_config = AgentConfig(
-    name="C4B4-Assistant",
-    model="gemini-2.0-flash",
+    name="C4B4_Assistant",
+    model="gemini-flash-latest",
     description="Community support agent specializing in automated assistance for the C4B4 ecosystem.",
     instruction="""You are the C4B4 Assistant, a highly efficient, friendly, and direct 
     autonomous agent. Your primary goal is to assist the community with technical guidance 

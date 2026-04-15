@@ -20,8 +20,8 @@ def get_current_weekday() -> str:
 
 # Temporal agent configuration with strict validation
 temporal_config = AgentConfig(
-    name="Temporal-Tool-Agent",
-    model="gemini-2.0-flash",
+    name="Temporal_Tool_Agent",
+    model="gemini-flash-latest",
     description="A specialized temporal agent capable of retrieving real-time system clock data.",
     instruction="""You are the Temporal Tool Agent, a precise assistant focused on providing 
     accurate time and date information. Use the provided system tools to answer temporal 
