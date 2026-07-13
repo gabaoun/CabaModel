@@ -6,9 +6,9 @@
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
-An advanced study on AI agent architecture using **Google ADK (Agent Development Kit)**, **FastAPI**, **Pydantic v2**, and asynchronous event-driven execution.
+A modular, production-grade AI Agent orchestration framework engineered using the **Google ADK (Agent Development Kit)**, **FastAPI**, **Pydantic v2**, and asynchronous event-driven execution.
 
-This project demonstrates a production-ready transition from simple scripts to a resilient, microservice-oriented agent orchestration.
+This microservice provides a resilient agent orchestration interface featuring clean architectural decoupling and structured schema validation.
 
 ## 🚀 Key Features
 
