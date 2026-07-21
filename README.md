@@ -28,3 +28,6 @@ cd CabaModel
 
 # Boot the service via Docker Compose
 docker-compose up -d --build
+```
+
+*The interactive API documentation will be available at http://localhost:8000/docs.*
