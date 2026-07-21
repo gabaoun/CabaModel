@@ -1,70 +1,30 @@
 # CabaModel: Gemini-Native Agent Architecture
 
-<p align="center">
+<p align="left">
   <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
 A modular, production-grade AI Agent orchestration framework engineered using the **Google ADK (Agent Development Kit)**, **FastAPI**, **Pydantic v2**, and asynchronous event-driven execution.
 
-This microservice provides a resilient agent orchestration interface featuring clean architectural decoupling and structured schema validation.
+This microservice provides a resilient agent orchestration interface featuring clean architectural decoupling, structured schema validation, and Multi-Agent patterns.
 
-## 🚀 Key Features
+## 🚀 System Architecture & Features
 
-- **Google ADK Runner Architecture:** Implements the latest `Runner` pattern for managing agentic loops, event streams, and tool calls.
-- **RESTful Interface:** Powered by FastAPI with an interactive Swagger UI for real-time testing and orchestration.
-- **Hexagonal Design:** Clear separation between **Domain**, **Application**, and **Infrastructure** layers, ensuring scalability and testability.
-- **Asynchronous & Non-blocking:** Full `asyncio` implementation to handle I/O and event streams without blocking the main event loop.
-- **Strict Validation:** Pydantic v2 ensures data integrity across all agent-tool interactions.
-- **Resilience:** Built-in retry logic with exponential backoff for robust API communication.
+- **Multi-Agent & Tool Calling:** Implements advanced agentic loops capable of delegating tasks and autonomously invoking tools using the latest ADK Runner pattern.
+- **RESTful Orchestration:** Powered by FastAPI with an interactive Swagger UI for real-time testing, acting as a scalable backend for LLM interactions.
+- **Hexagonal Design (Ports & Adapters):** Strict separation between **Domain**, **Application**, and **Infrastructure** layers, ensuring horizontal scalability.
+- **Non-blocking Execution:** Full `asyncio` implementation to handle high-throughput I/O and event streams efficiently.
+- **Data Integrity:** Pydantic v2 ensures strict typing and data compliance across all agent-tool LLM payloads.
 
-## 📂 Project Structure
+## 🐳 Quick Start (Docker)
+The service is containerized for seamless reproduction.
 
-- `src/cabamodel/domain/` – Core models and Pydantic schemas.
-- `src/cabamodel/infrastructure/` – API implementation, ADK Adapters, and Tools.
-- `src/cabamodel/application/` – Specialized agent definitions (e.g., temporal_agent, c4b4_bot).
-- `main.py` – Entry point for the FastAPI server and agent initialization.
+```bash
+# Clone the repository
+git clone https://github.com/gabaoun/CabaModel.git
+cd CabaModel
 
-## ⚙️ How to Run
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/CabaModel.git
-   ```
-
-2. **Setup Environment:**
-   Create a `.env` file based on `.env.example` and add your `GOOGLE_API_KEY`.
-
-3. **Install Dependencies:**
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
-   pip install -e .
-   ```
-
-4. **Run the API:**
-   ```bash
-   python main.py
-   ```
-
-5. **Interact:**
-   Open your browser at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to access the interactive Swagger documentation.
-
-## 🛠️ Programmatic Usage Example
-
-```python
-from src.cabamodel.application.temporal_agent import root_agent
-from src.cabamodel.infrastructure.agent_service import run_agent_async
-
-async def main():
-    # Execute the agent using the ADK Runner-based service
-    response = await run_agent_async(root_agent, "What time is it now?")
-    print(f"Agent Response: {response}")
-
-# This pattern handles tool-calling loops and event streams automatically
-```
-
-## ⚖️ License
-
-Distributed under the Apache 2.0 License. See `LICENSE` for more information.
+# Boot the service via Docker Compose
+docker-compose up -d --build
