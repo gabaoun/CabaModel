@@ -3,8 +3,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import src.cabamodel.infrastructure.agent_service as agent_service
 from src.cabamodel.domain.models import AgentConfig
+from src.cabamodel.infrastructure import agent_service
 from src.cabamodel.infrastructure.agent_service import AgentFactory, run_agent_async
 
 

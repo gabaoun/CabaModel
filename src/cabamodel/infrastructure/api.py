@@ -4,8 +4,9 @@ from collections import defaultdict
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
-from src.cabamodel.application.temporal_agent import root_agent as temporal_agent
+
 from src.cabamodel.application.c4b4_bot import root_agent as c4b4_agent
+from src.cabamodel.application.temporal_agent import root_agent as temporal_agent
 from src.cabamodel.infrastructure.agent_service import run_agent_async
 
 app = FastAPI(
@@ -46,11 +47,11 @@ class ChatResponse(BaseModel):
     agent_name: str
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     return {"message": "CabaModel API is running", "docs": "/docs"}
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, http_request: Request):
+async def chat(request: ChatRequest, http_request: Request) -> ChatResponse:
     """
     Sends a message to the selected agent and returns the response.
     """
@@ -74,5 +75,5 @@ async def chat(request: ChatRequest, http_request: Request):
         )
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - final boundary, converts any failure into a 500
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,5 +1,8 @@
-from typing import List, Optional, Callable
-from pydantic import BaseModel, Field, ConfigDict
+from collections.abc import Callable
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 class AgentConfig(BaseModel):
     """Configuration schema for any ADK-based agent.
@@ -17,4 +20,4 @@ class AgentConfig(BaseModel):
     model: str = Field(default="gemini-2.0-flash")
     description: str = Field(..., min_length=10)
     instruction: str = Field(..., min_length=20)
-    tools: List[Callable] = Field(default_factory=list)
+    tools: list[Callable[..., Any]] = Field(default_factory=list)

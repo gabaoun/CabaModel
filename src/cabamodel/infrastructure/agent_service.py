@@ -1,15 +1,18 @@
 import asyncio
-from typing import Any, Callable, TypeVar, Coroutine, List
+from collections.abc import Callable, Coroutine
+from typing import Any, TypeVar
+
 from google.adk.agents import Agent
 from google.adk.runners import Runner
 from google.adk.sessions.in_memory_session_service import InMemorySessionService
 from google.genai import types
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
+
 from src.cabamodel.domain.models import AgentConfig
 
 T = TypeVar("T")
@@ -40,7 +43,7 @@ class AgentFactory:
             model=config.model,
             description=config.description,
             instruction=config.instruction,
-            tools=config.tools
+            tools=config.tools  # type: ignore[arg-type]  # list is invariant; domain Callables are a valid subset of ADK's broader tools union
         )
 
 def async_tool(func: Callable[..., Any]) -> Callable[..., Coroutine[Any, Any, Any]]:
@@ -57,7 +60,7 @@ async def run_agent_async(agent: Agent, message: str) -> str:
     This is the recommended way for production and better error handling.
     """
     # 1. Setup Session Service (In-memory for simplicity)
-    session_service = InMemorySessionService()
+    session_service = InMemorySessionService()  # type: ignore[no-untyped-call]  # google-adk ships incomplete type stubs
     
     # 2. Setup Runner
     runner = Runner(
@@ -87,7 +90,7 @@ async def run_agent_async(agent: Agent, message: str) -> str:
                 for part in event.content.parts:
                     if part.text:
                         full_response.append(part.text)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - translates any ADK/model failure into a user-facing message
         error_msg = str(e)
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
             return "ERROR: Google API Quota Exceeded (429). Please wait a moment or try again."

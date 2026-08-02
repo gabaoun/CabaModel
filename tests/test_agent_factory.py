@@ -7,11 +7,11 @@ from src.cabamodel.infrastructure.agent_service import AgentFactory, async_tool
 
 
 def _config(**overrides):
-    kwargs = dict(
-        name="factory_agent",
-        description="A sufficiently long description for the agent.",
-        instruction="A sufficiently long instruction for the agent to follow.",
-    )
+    kwargs = {
+        "name": "factory_agent",
+        "description": "A sufficiently long description for the agent.",
+        "instruction": "A sufficiently long instruction for the agent to follow.",
+    }
     kwargs.update(overrides)
     return AgentConfig(**kwargs)
 

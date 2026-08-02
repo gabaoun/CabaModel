@@ -1,5 +1,6 @@
-import uvicorn
 import os
+
+import uvicorn
 from dotenv import load_dotenv
 
 # Load API keys from .env file

@@ -5,11 +5,11 @@ from src.cabamodel.domain.models import AgentConfig
 
 
 def _valid_kwargs(**overrides):
-    kwargs = dict(
-        name="valid_agent",
-        description="A sufficiently long description for the agent.",
-        instruction="A sufficiently long instruction for the agent to follow.",
-    )
+    kwargs = {
+        "name": "valid_agent",
+        "description": "A sufficiently long description for the agent.",
+        "instruction": "A sufficiently long instruction for the agent to follow.",
+    }
     kwargs.update(overrides)
     return kwargs
 
