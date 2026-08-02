@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: cabamodel
+    runtime: python
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: uvicorn src.cabamodel.infrastructure.api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: CHAT_RATE_LIMIT_PER_HOUR
+        value: "5"
