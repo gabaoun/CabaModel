@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
-Production-grade AI agent orchestration framework built on the **Google Agent Development Kit (ADK)**, exposed through a **FastAPI** REST interface. CabaModel decouples agent definition, execution, and infrastructure behind a hexagonal (ports & adapters) architecture, delivering a resilient, schema-validated layer for running Gemini-native agents with tool-calling loops.
+AI agent orchestration framework built on the **Google Agent Development Kit (ADK)**, exposed through a **FastAPI** REST interface. CabaModel decouples agent definition, execution, and infrastructure behind a hexagonal (ports & adapters) architecture, delivering a resilient, schema-validated layer for running Gemini-native agents with tool-calling loops.
 
 The framework abstracts the ADK `Runner` execution model — event streams, tool calls, and session handling — behind a single async service contract, making specialized agents first-class, swappable components.
 
