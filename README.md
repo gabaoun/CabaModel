@@ -10,6 +10,12 @@ AI agent orchestration framework built on the **Google Agent Development Kit (AD
 
 The framework abstracts the ADK `Runner` execution model — event streams, tool calls, and session handling — behind a single async service contract, making specialized agents first-class, swappable components.
 
+## 🔗 Live Demo
+
+**[cabamodel.onrender.com/docs](https://cabamodel.onrender.com/docs)** — interactive Swagger UI, try `/chat` directly in the browser.
+
+> Hosted on Render's free tier: spins down after 15 minutes idle, so the first request after a while takes ~30s to cold-start. `/chat` is rate-limited (5 requests/hour/IP) to protect the underlying Gemini API quota.
+
 ---
 
 ## Key Capabilities
