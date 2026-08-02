@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CabaModel — Live Demo</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #0f1115;
+    --panel: #161923;
+    --border: #2a2f3d;
+    --text: #e6e8ee;
+    --muted: #8b91a3;
+    --accent: #4f8cff;
+    --user-bubble: #2a3550;
+    --agent-bubble: #1e2230;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  main {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  header h1 {
+    font-size: 1.3rem;
+    margin: 0 0 4px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  header a { color: var(--accent); }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #log {
+    flex: 1;
+    min-height: 320px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    line-height: 1.4;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--user-bubble);
+  }
+  .msg.agent {
+    align-self: flex-start;
+    background: var(--agent-bubble);
+  }
+  .msg.error {
+    align-self: flex-start;
+    background: #3a1f24;
+    color: #ff9aa6;
+  }
+  .msg .who {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+  }
+  select {
+    background: var(--agent-bubble);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 8px;
+    font-size: 0.85rem;
+  }
+  input[type=text] {
+    flex: 1;
+    background: var(--agent-bubble);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+  input[type=text]:focus, select:focus { outline: 1px solid var(--accent); }
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  footer {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>CabaModel</h1>
+    <p>Gemini-native agent orchestration, live. Source and architecture on <a href="https://github.com/gabaoun/CabaModel" target="_blank" rel="noopener">GitHub</a> &middot; raw API at <a href="/docs">/docs</a>.</p>
+  </header>
+  <div class="panel">
+    <div id="log">
+      <div class="msg agent"><span class="who">Temporal_Tool_Agent</span>Ask me the time, the weekday, or say hi to the C4B4 assistant below.</div>
+    </div>
+    <form id="form">
+      <select id="agent">
+        <option value="temporal">Temporal</option>
+        <option value="c4b4">C4B4</option>
+      </select>
+      <input id="input" type="text" placeholder="Type a message..." autocomplete="off" maxlength="500" required>
+      <button id="send" type="submit">Send</button>
+    </form>
+  </div>
+  <footer>Free-tier deploy: first request after idle can take ~30s to wake up. Rate-limited to 5 requests/hour/IP.</footer>
+</main>
+<script>
+  const log = document.getElementById('log');
+  const form = document.getElementById('form');
+  const input = document.getElementById('input');
+  const agentSelect = document.getElementById('agent');
+  const sendBtn = document.getElementById('send');
+
+  function addMessage(who, text, cls) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + cls;
+    const label = document.createElement('span');
+    label.className = 'who';
+    label.textContent = who;
+    div.appendChild(label);
+    div.appendChild(document.createTextNode(text));
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessage('You', message, 'user');
+    input.value = '';
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message, agent_type: agentSelect.value }),
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        addMessage('Rate limit', data.detail || 'Too many requests, try again later.', 'error');
+      } else if (!res.ok) {
+        addMessage('Error', data.detail || ('HTTP ' + res.status), 'error');
+      } else {
+        addMessage(data.agent_name || 'Agent', data.response, 'agent');
+      }
+    } catch (err) {
+      addMessage('Error', 'Could not reach the API. If this is the first request in a while, the free-tier instance may still be waking up - try again in a few seconds.', 'error');
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  });
+</script>
+</body>
+</html>

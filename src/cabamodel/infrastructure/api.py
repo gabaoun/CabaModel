@@ -1,8 +1,10 @@
 import os
 import time
 from collections import defaultdict
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from src.cabamodel.application.c4b4_bot import root_agent as c4b4_agent
@@ -14,6 +16,9 @@ app = FastAPI(
     description="REST interface for Gemini-Native agent orchestration",
     version="1.0.0"
 )
+
+_STATIC_DIR = Path(__file__).parent / "static"
+app.mount("/ui", StaticFiles(directory=_STATIC_DIR, html=True), name="ui")
 
 # In-memory per-IP sliding-window limiter for /chat. This is a public demo
 # backed by a real Gemini API key/quota, so it needs a cheap guard against
@@ -48,7 +53,7 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 async def root() -> dict[str, str]:
-    return {"message": "CabaModel API is running", "docs": "/docs"}
+    return {"message": "CabaModel API is running", "docs": "/docs", "ui": "/ui"}
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, http_request: Request) -> ChatResponse:

@@ -13,7 +13,8 @@ The framework abstracts the ADK `Runner` execution model — event streams, tool
 
 ## 🔗 Live Demo
 
-**[cabamodel.onrender.com/docs](https://cabamodel.onrender.com/docs)** — interactive Swagger UI, try `/chat` directly in the browser.
+**[cabamodel.onrender.com/ui](https://cabamodel.onrender.com/ui)** — minimal chat interface, talk to the agents directly.
+Raw API docs (Swagger) at [/docs](https://cabamodel.onrender.com/docs).
 
 > Hosted on Render's free tier: spins down after 15 minutes idle, so the first request after a while takes ~30s to cold-start. `/chat` is rate-limited (5 requests/hour/IP) to protect the underlying Gemini API quota.
 

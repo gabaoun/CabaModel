@@ -14,6 +14,14 @@ def _reset_rate_limit():
     api_module._request_log.clear()
 
 
+def test_ui_serves_the_chat_page():
+    response = client.get("/ui")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "/chat" in response.text
+
+
 def test_root_reports_service_is_running():
     response = client.get("/")
 
