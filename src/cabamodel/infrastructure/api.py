@@ -42,5 +42,7 @@ async def chat(request: ChatRequest):
             response=response,
             agent_name=selected_agent.name
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
