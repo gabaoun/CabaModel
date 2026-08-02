@@ -1,4 +1,8 @@
-from fastapi import FastAPI, HTTPException
+import os
+import time
+from collections import defaultdict
+
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from src.cabamodel.application.temporal_agent import root_agent as temporal_agent
 from src.cabamodel.application.c4b4_bot import root_agent as c4b4_agent
@@ -9,6 +13,29 @@ app = FastAPI(
     description="REST interface for Gemini-Native agent orchestration",
     version="1.0.0"
 )
+
+# In-memory per-IP sliding-window limiter for /chat. This is a public demo
+# backed by a real Gemini API key/quota, so it needs a cheap guard against
+# a single caller burning the quota. Single-process, resets on restart -
+# acceptable for a free-tier demo deployment, not meant for production scale.
+RATE_LIMIT_PER_HOUR = int(os.getenv("CHAT_RATE_LIMIT_PER_HOUR", "5"))
+_RATE_LIMIT_WINDOW_SECONDS = 3600
+_request_log: dict[str, list[float]] = defaultdict(list)
+
+
+def _check_rate_limit(client_id: str, now: float | None = None) -> None:
+    now = time.time() if now is None else now
+    window_start = now - _RATE_LIMIT_WINDOW_SECONDS
+    recent = [t for t in _request_log[client_id] if t > window_start]
+    if len(recent) >= RATE_LIMIT_PER_HOUR:
+        _request_log[client_id] = recent
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: max {RATE_LIMIT_PER_HOUR} requests/hour on this demo endpoint.",
+        )
+    recent.append(now)
+    _request_log[client_id] = recent
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -23,10 +50,13 @@ async def root():
     return {"message": "CabaModel API is running", "docs": "/docs"}
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
     """
     Sends a message to the selected agent and returns the response.
     """
+    client_id = http_request.client.host if http_request.client else "unknown"
+    _check_rate_limit(client_id)
+
     try:
         if request.agent_type == "temporal":
             selected_agent = temporal_agent
