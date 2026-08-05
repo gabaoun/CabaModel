@@ -49,50 +49,29 @@ Raw API docs (Swagger) at [/docs](https://cabamodel.onrender.com/docs).
 
 ## Architecture
 
-```text
-┌────────────────────────────────────────────────────────────┐
-│                        HTTP Layer                          │
-│                    src/cabamodel/infrastructure/api.py      │
-│                    FastAPI (POST /chat)                    │
-└──────────────────────────┬─────────────────────────────────┘
-                           │
-┌──────────────────────────▼─────────────────────────────────┐
-│                  Infrastructure (Adapters)                  │
-│            agent_service.py — AgentFactory, async_tool,     │
-│            run_agent_async (ADK Runner), standard_retry     │
-└──────────────────────────┬─────────────────────────────────┘
-                           │ instantiates
-┌──────────────────────────▼─────────────────────────────────┐
-│                   Application (Agents)                      │
-│   temporal_agent.py        c4b4_bot.py                      │
-│   (time/date tools)        (community support)              │
-└──────────────────────────┬─────────────────────────────────┘
-                           │ defined by
-┌──────────────────────────▼─────────────────────────────────┐
-│                    Domain (Schemas)                         │
-│        models.py — AgentConfig (Pydantic v2)                │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A["HTTP Layer<br/>infrastructure/api.py<br/>FastAPI POST /chat"] --> B
+    B["Infrastructure Adapters<br/>agent_service.py<br/>AgentFactory, async_tool, run_agent_async, standard_retry"] -->|instantiates| C
+    C["Application Agents<br/>temporal_agent.py (time/date tools)<br/>c4b4_bot.py (community support)"] -->|defined by| D
+    D["Domain Schemas<br/>models.py — AgentConfig (Pydantic v2)"]
 ```
 
 ### Execution Flow
 
-```text
-POST /chat { message, agent_type }
-        │
-        ▼
-validate agent_type → select agent (temporal | c4b4)
-        │
-        ▼
-run_agent_async(agent, message)
-        │
-        ├── ADK Runner (auto_create_session)
-        ├── agentic loop: model ↔ tools (Gemini function calling)
-        │       └── sync tools bridged via asyncio.to_thread
-        ├── collect text events from stream
-        └── retry on 429 / RESOURCE_EXHAUSTED (exponential backoff)
-        │
-        ▼
-{ response, agent_name }
+```mermaid
+flowchart TD
+    A["POST /chat { message, agent_type }"] --> B{"validate agent_type"}
+    B --> C["select agent: temporal | c4b4"]
+    C --> D["run_agent_async(agent, message)"]
+    D --> E["ADK Runner (auto_create_session)"]
+    E --> F["agentic loop: model ↔ tools<br/>(Gemini function calling)"]
+    F --> G["sync tools bridged via asyncio.to_thread"]
+    G --> H["collect text events from stream"]
+    H --> I{"429 / RESOURCE_EXHAUSTED?"}
+    I -->|yes| J["retry, exponential backoff"]
+    J --> E
+    I -->|no| K["{ response, agent_name }"]
 ```
 
 ### Project Structure
