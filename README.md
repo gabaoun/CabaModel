@@ -32,6 +32,16 @@ Raw API docs (Swagger) at [/docs](https://cabamodel.onrender.com/docs).
 
 ---
 
+## Design Decisions
+
+- **Hexagonal Architecture (Ports & Adapters):** Domain schemas, agent definitions, and ADK infrastructure are strictly layered so the ADK SDK — or the LLM provider behind it — can be swapped without touching agent logic or the HTTP layer.
+- **Pydantic v2 for Agent Configuration:** `AgentConfig` is schema-validated at definition time, not at request time. Malformed agent definitions fail at import/startup, never mid-request.
+- **`asyncio.to_thread` for Sync Tool Bridging:** ADK tool functions are plain sync callables; bridging them through a thread pool keeps the single event loop unblocked instead of forcing every tool to be rewritten async.
+- **Retry at the Model-Call Boundary, Not the Request Boundary:** `tenacity`-backed exponential backoff wraps only the external Gemini call, so a 429/`RESOURCE_EXHAUSTED` is retried without re-running already-completed tool calls in the same turn.
+- **Pluggable Agent Registry over a Central Dispatcher:** New agents register themselves as `AgentConfig` instances in the application layer — no changes to `infrastructure/api.py` or the ADK adapter are needed to add one.
+
+---
+
 ## Tech Stack
 
 | Layer            | Technology                                        |
