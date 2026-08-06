@@ -1,11 +1,13 @@
 import asyncio
 import concurrent.futures
-from typing import Any, Coroutine
+from collections.abc import Coroutine
+from typing import Any
 
-from src.cabamodel.domain.models import AgentConfig
-from src.cabamodel.application.temporal_agent import temporal_config
 from src.cabamodel.application.c4b4_bot import c4b4_config
+from src.cabamodel.application.temporal_agent import temporal_config
+from src.cabamodel.domain.models import AgentConfig
 from src.cabamodel.infrastructure.agent_service import run_agent_async
+
 
 def _run_async_in_thread(coro: Coroutine[Any, Any, Any]) -> Any:
     """Helper to run async code safely from a sync tool if called inside an event loop."""
@@ -27,7 +29,7 @@ def ask_temporal_agent(query: str) -> str:
     Args:
         query: The specific question to ask the Temporal Agent.
     """
-    return _run_async_in_thread(run_agent_async(temporal_config, query))
+    return str(_run_async_in_thread(run_agent_async(temporal_config, query)))
 
 def ask_c4b4_agent(query: str) -> str:
     """
@@ -37,7 +39,7 @@ def ask_c4b4_agent(query: str) -> str:
     Args:
         query: The specific question to ask the C4B4 Agent.
     """
-    return _run_async_in_thread(run_agent_async(c4b4_config, query))
+    return str(_run_async_in_thread(run_agent_async(c4b4_config, query)))
 
 supervisor_config = AgentConfig(
     name="Supervisor_Agent",

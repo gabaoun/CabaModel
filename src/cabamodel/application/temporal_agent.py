@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 
 from src.cabamodel.domain.models import AgentConfig
-from src.cabamodel.infrastructure.agent_service import AgentFactory
 
 
 def get_current_time() -> str:

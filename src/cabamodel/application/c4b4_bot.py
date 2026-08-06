@@ -1,5 +1,4 @@
 from src.cabamodel.domain.models import AgentConfig
-from src.cabamodel.infrastructure.agent_service import AgentFactory
 
 # Configuration definition using Pydantic
 c4b4_config = AgentConfig(

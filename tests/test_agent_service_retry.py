@@ -8,13 +8,12 @@ from src.cabamodel.infrastructure import agent_service
 from src.cabamodel.infrastructure.agent_service import AgentFactory, run_agent_async
 
 
-def _agent():
-    config = AgentConfig(
+def _config():
+    return AgentConfig(
         name="retry_agent",
         description="A sufficiently long description for the agent.",
         instruction="A sufficiently long instruction for the agent to follow.",
     )
-    return AgentFactory.create_agent(config)
 
 
 class _RaisingRunner:
@@ -59,7 +58,7 @@ def test_run_agent_async_translates_known_error_shapes(monkeypatch, raw_message,
         agent_service, "Runner", lambda **kwargs: _RaisingRunner(Exception(raw_message), **kwargs)
     )
 
-    result = asyncio.run(run_agent_async(_agent(), "What time is it?"))
+    result = asyncio.run(run_agent_async(_config(), "What time is it?"))
 
     assert expected_snippet in result
 
@@ -69,7 +68,7 @@ def test_run_agent_async_joins_streamed_text_parts(monkeypatch):
         agent_service, "Runner", lambda **kwargs: _TextEventRunner(["It is ", "14:32."], **kwargs)
     )
 
-    result = asyncio.run(run_agent_async(_agent(), "What time is it?"))
+    result = asyncio.run(run_agent_async(_config(), "What time is it?"))
 
     assert result == "It is 14:32."
 
@@ -77,6 +76,6 @@ def test_run_agent_async_joins_streamed_text_parts(monkeypatch):
 def test_run_agent_async_reports_when_no_text_was_produced(monkeypatch):
     monkeypatch.setattr(agent_service, "Runner", lambda **kwargs: _TextEventRunner([], **kwargs))
 
-    result = asyncio.run(run_agent_async(_agent(), "..."))
+    result = asyncio.run(run_agent_async(_config(), "..."))
 
     assert result == "Agent finished with no text output."

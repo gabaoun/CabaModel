@@ -86,7 +86,7 @@ async def _execute_agent(config: AgentConfig, message: str) -> str:
 
     result = "".join(full_response).strip()
     if not result:
-        raise Exception("Agent finished with no text output.")
+        raise Exception("Agent finished with no text output.")  # noqa: TRY002
     return result
 
 async def run_agent_async(config: AgentConfig, message: str) -> str:
@@ -97,7 +97,7 @@ async def run_agent_async(config: AgentConfig, message: str) -> str:
     """
     try:
         return await _execute_agent(config, message)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_msg = str(e)
         # Handle Quota / Rate Limiting (even after 3 retries)
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
@@ -110,7 +110,7 @@ async def run_agent_async(config: AgentConfig, message: str) -> str:
                 fallback_config = config.model_copy(update={"model": fallback_model})
                 try:
                     return await _execute_agent(fallback_config, message)
-                except Exception as e_fallback:
+                except Exception as e_fallback:  # noqa: BLE001
                     return f"ERROR: Primary and Fallback models failed. Last error: {e_fallback}"
         
         return f"ERROR: {error_msg}"

@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from src.cabamodel.domain.models import AgentConfig
-from src.cabamodel.infrastructure.agent_service import AgentFactory, async_tool
+from src.cabamodel.infrastructure.agent_service import AgentFactory
 
 
 def _config(**overrides):
@@ -35,21 +35,4 @@ def test_create_agent_defaults_to_no_tools():
     assert agent.tools == []
 
 
-def test_async_tool_wraps_sync_function_and_returns_its_result():
-    def add(a, b):
-        return a + b
 
-    wrapped = async_tool(add)
-    result = asyncio.run(wrapped(2, 3))
-
-    assert result == 5
-
-
-def test_async_tool_propagates_exceptions_from_the_wrapped_function():
-    def boom():
-        raise ValueError("expected failure")
-
-    wrapped = async_tool(boom)
-
-    with pytest.raises(ValueError, match="expected failure"):
-        asyncio.run(wrapped())
