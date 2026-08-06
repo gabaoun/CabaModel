@@ -11,5 +11,4 @@ c4b4_config = AgentConfig(
     and operational support. Always prioritize clarity and accuracy in your responses."""
 )
 
-# Resilient instantiation
-root_agent = AgentFactory.create_agent(c4b4_config)
+

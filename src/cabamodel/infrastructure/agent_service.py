@@ -54,15 +54,12 @@ def async_tool(func: Callable[..., Any]) -> Callable[..., Coroutine[Any, Any, An
         return await asyncio.to_thread(func, *args, **kwargs)
     return wrapper
 
-async def run_agent_async(agent: Agent, message: str) -> str:
-    """
-    Runs an agent asynchronously using the Runner.run_async pattern (ADK 1.30.0+).
-    This is the recommended way for production and better error handling.
-    """
-    # 1. Setup Session Service (In-memory for simplicity)
-    session_service = InMemorySessionService()  # type: ignore[no-untyped-call]  # google-adk ships incomplete type stubs
+@standard_retry
+async def _execute_agent(config: AgentConfig, message: str) -> str:
+    """Executes the agent with tenacity exponential backoff retries."""
+    session_service = InMemorySessionService()  # type: ignore[no-untyped-call]
+    agent = AgentFactory.create_agent(config)
     
-    # 2. Setup Runner
     runner = Runner(
         app_name="cabamodel_app",
         agent=agent,
@@ -70,7 +67,6 @@ async def run_agent_async(agent: Agent, message: str) -> str:
         auto_create_session=True
     )
     
-    # 3. Format input
     content = types.Content(
         role='user',
         parts=[types.Part(text=message)]
@@ -78,25 +74,43 @@ async def run_agent_async(agent: Agent, message: str) -> str:
     
     full_response = []
     
-    # 4. Run the agent and collect events
-    try:
-        async for event in runner.run_async(
-            user_id="default_user",
-            session_id="default_session",
-            new_message=content
-        ):
-            # We look for content in any event that has text part
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.text:
-                        full_response.append(part.text)
-    except Exception as e:  # noqa: BLE001 - translates any ADK/model failure into a user-facing message
-        error_msg = str(e)
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-            return "ERROR: Google API Quota Exceeded (429). Please wait a moment or try again."
-        elif "404" in error_msg:
-            return "ERROR: Model not found (404). Falling back..."
-        return f"ERROR: {error_msg}"
+    async for event in runner.run_async(
+        user_id="default_user",
+        session_id="default_session",
+        new_message=content
+    ):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    full_response.append(part.text)
 
     result = "".join(full_response).strip()
-    return result if result else "Agent finished with no text output."
+    if not result:
+        raise Exception("Agent finished with no text output.")
+    return result
+
+async def run_agent_async(config: AgentConfig, message: str) -> str:
+    """
+    Public entrypoint for running an agent.
+    Includes the @standard_retry loop internally via _execute_agent,
+    and implements a true Fallback to a lighter model on critical errors.
+    """
+    try:
+        return await _execute_agent(config, message)
+    except Exception as e:
+        error_msg = str(e)
+        # Handle Quota / Rate Limiting (even after 3 retries)
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            return "ERROR: Google API Quota Exceeded (429) after retries. Please wait."
+        
+        # Handle Model Not Found or Internal Errors by falling back!
+        if "404" in error_msg or "500" in error_msg or "503" in error_msg:
+            fallback_model = "gemini-1.5-flash"
+            if config.model != fallback_model:
+                fallback_config = config.model_copy(update={"model": fallback_model})
+                try:
+                    return await _execute_agent(fallback_config, message)
+                except Exception as e_fallback:
+                    return f"ERROR: Primary and Fallback models failed. Last error: {e_fallback}"
+        
+        return f"ERROR: {error_msg}"

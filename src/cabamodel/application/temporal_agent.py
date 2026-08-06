@@ -31,5 +31,4 @@ temporal_config = AgentConfig(
     tools=[get_current_time, get_current_weekday]
 )
 
-# Resilient instantiation
-root_agent = AgentFactory.create_agent(temporal_config)
+

@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/hero.png" alt="CabaModel Hero Image" width="100%">
+</div>
+
 # CabaModel: Gemini-Native Agent Orchestration
 
 <p align="center">
@@ -7,16 +11,30 @@
   <img src="https://img.shields.io/badge/Powered_by-Gemini-blue?style=for-the-badge&logo=google-gemini" />
 </p>
 
+> **🌟 If you find this project useful, please consider giving it a star! It helps the project grow.**
+
 AI agent orchestration framework built on the **Google Agent Development Kit (ADK)**, exposed through a **FastAPI** REST interface. CabaModel decouples agent definition, execution, and infrastructure behind a hexagonal (ports & adapters) architecture, delivering a resilient, schema-validated layer for running Gemini-native agents with tool-calling loops.
 
-The framework abstracts the ADK `Runner` execution model — event streams, tool calls, and session handling — behind a single async service contract, making specialized agents first-class, swappable components.
-
-## 🔗 Live Demo
-
-**[cabamodel.onrender.com/ui](https://cabamodel.onrender.com/ui)** — minimal chat interface, talk to the agents directly.
+**Live Demo:** [cabamodel.onrender.com/ui](https://cabamodel.onrender.com/ui) — minimal chat interface, talk to the agents directly.
 Raw API docs (Swagger) at [/docs](https://cabamodel.onrender.com/docs).
 
-> Hosted on Render's free tier: spins down after 15 minutes idle, so the first request after a while takes ~30s to cold-start. `/chat` is rate-limited (5 requests/hour/IP) to protect the underlying Gemini API quota.
+---
+
+## 🚀 Quickstart
+
+Clone and run the agents locally:
+
+```bash
+git clone https://github.com/gabaoun/CabaModel.git
+cd CabaModel
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# Run the FastAPI server
+uvicorn main:app --reload
+```
+*The API and Swagger docs will be available at `http://localhost:8000/docs`.*
 
 ---
 

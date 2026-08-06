@@ -7,13 +7,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from src.cabamodel.application.c4b4_bot import root_agent as c4b4_agent
-from src.cabamodel.application.temporal_agent import root_agent as temporal_agent
+from src.cabamodel.application.supervisor_agent import supervisor_config
 from src.cabamodel.infrastructure.agent_service import run_agent_async
 
 app = FastAPI(
     title="CabaModel API",
-    description="REST interface for Gemini-Native agent orchestration",
+    description="REST interface for Gemini-Native agent orchestration (Level 2 Multi-Agent)",
     version="1.0.0"
 )
 
@@ -45,7 +44,7 @@ def _check_rate_limit(client_id: str, now: float | None = None) -> None:
 
 class ChatRequest(BaseModel):
     message: str
-    agent_type: str = "temporal"  # "temporal" or "c4b4"
+    agent_type: str = "supervisor"  # Maintained for backward compatibility, but ignored
 
 class ChatResponse(BaseModel):
     response: str
@@ -53,30 +52,23 @@ class ChatResponse(BaseModel):
 
 @app.get("/")
 async def root() -> dict[str, str]:
-    return {"message": "CabaModel API is running", "docs": "/docs", "ui": "/ui"}
+    return {"message": "CabaModel API is running (Level 2)", "docs": "/docs", "ui": "/ui"}
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, http_request: Request) -> ChatResponse:
     """
-    Sends a message to the selected agent and returns the response.
+    Sends a message to the Supervisor Agent (Level 2) and returns the response.
     """
     client_id = http_request.client.host if http_request.client else "unknown"
     _check_rate_limit(client_id)
 
     try:
-        if request.agent_type == "temporal":
-            selected_agent = temporal_agent
-        elif request.agent_type == "c4b4":
-            selected_agent = c4b4_agent
-        else:
-            raise HTTPException(status_code=400, detail="Agent type invalid. Use 'temporal' or 'c4b4'.")
-
-        # Use the recommended async runner to handle events and errors properly
-        response = await run_agent_async(selected_agent, request.message)
+        # Route directly to the Supervisor - it decides which sub-agent to invoke
+        response = await run_agent_async(supervisor_config, request.message)
         
         return ChatResponse(
             response=response,
-            agent_name=selected_agent.name
+            agent_name=supervisor_config.name
         )
     except HTTPException:
         raise
