@@ -27,7 +27,7 @@ def test_root_reports_service_is_running():
 
     assert response.status_code == 200
     body = response.json()
-    assert body["message"] == "CabaModel API is running"
+    assert body["message"] == "CabaModel API is running (Level 2)"
     assert body["docs"] == "/docs"
 
 

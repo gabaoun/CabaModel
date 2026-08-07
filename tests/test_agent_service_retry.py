@@ -5,7 +5,7 @@ import pytest
 
 from src.cabamodel.domain.models import AgentConfig
 from src.cabamodel.infrastructure import agent_service
-from src.cabamodel.infrastructure.agent_service import AgentFactory, run_agent_async
+from src.cabamodel.infrastructure.agent_service import run_agent_async
 
 
 def _config():

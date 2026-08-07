@@ -86,8 +86,19 @@ async def _execute_agent(config: AgentConfig, message: str) -> str:
 
     result = "".join(full_response).strip()
     if not result:
-        raise Exception("Agent finished with no text output.")  # noqa: TRY002
+        # Not a failure worth retrying/falling back over: the call succeeded,
+        # the model just had nothing to say. Return directly instead of
+        # raising, so it doesn't burn the retry budget or trigger fallback.
+        return "Agent finished with no text output."
     return result
+
+def _translate_known_error(error_msg: str) -> str:
+    """Maps a raw provider error string to a user-facing explanation."""
+    if "404" in error_msg:
+        return "Model not found (404)"
+    if "500" in error_msg or "503" in error_msg:
+        return "Service temporarily unavailable"
+    return error_msg
 
 async def run_agent_async(config: AgentConfig, message: str) -> str:
     """
@@ -111,6 +122,7 @@ async def run_agent_async(config: AgentConfig, message: str) -> str:
                 try:
                     return await _execute_agent(fallback_config, message)
                 except Exception as e_fallback:  # noqa: BLE001
-                    return f"ERROR: Primary and Fallback models failed. Last error: {e_fallback}"
+                    return f"ERROR: Primary and Fallback models failed. Last error: {_translate_known_error(str(e_fallback))}"
+            return f"ERROR: {_translate_known_error(error_msg)}"
         
         return f"ERROR: {error_msg}"
