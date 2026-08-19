@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.cabamodel.application.supervisor_agent import supervisor_config
 from src.cabamodel.infrastructure.agent_service import run_agent_async
@@ -28,6 +28,18 @@ _RATE_LIMIT_WINDOW_SECONDS = 3600
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
+def _client_id(request: Request) -> str:
+    # Render (and any reverse proxy) puts every request's real client.host as
+    # the proxy's own internal address, so a plain socket-IP key collapses
+    # every visitor into one shared bucket - one active user exhausts the
+    # quota for everyone else. X-Forwarded-For's first hop is the actual
+    # client; only fall back to the socket IP for direct/local connections.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def _check_rate_limit(client_id: str, now: float | None = None) -> None:
     now = time.time() if now is None else now
     window_start = now - _RATE_LIMIT_WINDOW_SECONDS
@@ -43,7 +55,9 @@ def _check_rate_limit(client_id: str, now: float | None = None) -> None:
 
 
 class ChatRequest(BaseModel):
-    message: str
+    # Bounds the token cost (and Gemini quota burn) a single request can push
+    # through the LLM - the rate limiter caps request count, this caps size.
+    message: str = Field(..., min_length=1, max_length=2000)
     agent_type: str = "supervisor"  # Maintained for backward compatibility, but ignored
 
 class ChatResponse(BaseModel):
@@ -59,7 +73,7 @@ async def chat(request: ChatRequest, http_request: Request) -> ChatResponse:
     """
     Sends a message to the Supervisor Agent (Level 2) and returns the response.
     """
-    client_id = http_request.client.host if http_request.client else "unknown"
+    client_id = _client_id(http_request)
     _check_rate_limit(client_id)
 
     try:
